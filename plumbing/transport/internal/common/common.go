@@ -271,6 +271,14 @@ func (s *session) UploadPack(ctx context.Context, req *packp.UploadPackRequest) 
 	return DecodeUploadPackResponse(rc, req)
 }
 
+func (s *session) ObjectInfo(
+	ctx context.Context, req *packp.ObjectInfoRequest,
+) (*packp.ObjectInfoResponse, error) {
+
+	panic("unimplemented")
+	return nil, nil
+}
+
 func (s *session) StdinContext(ctx context.Context) io.WriteCloser {
 	return ioutil.NewWriteCloserOnError(
 		ioutil.NewContextWriteCloser(ctx, s.Stdin),

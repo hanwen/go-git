@@ -29,6 +29,7 @@ func applyHeadersToRequest(req *http.Request, content *bytes.Buffer, host string
 	req.Header.Add("Accept", fmt.Sprintf("application/x-%s-result", requestType))
 	req.Header.Add("Content-Type", fmt.Sprintf("application/x-%s-request", requestType))
 	req.Header.Add("Content-Length", strconv.Itoa(content.Len()))
+	req.Header.Add("git-protocol", "version=2")
 }
 
 const infoRefsPath = "/info/refs"

@@ -384,6 +384,48 @@ func (r *Remote) FetchContext(ctx context.Context, o *FetchOptions) error {
 	return err
 }
 
+func (r *Remote) ObjectSizesContext(ctx context.Context, o *FetchOptions, hashes []plumbing.Hash) (sizes map[plumbing.Hash]uint64, err error) {
+	if o.RemoteName == "" {
+		o.RemoteName = r.c.Name
+	}
+
+	if err = o.Validate(); err != nil {
+		return nil, err
+	}
+
+	if len(o.RefSpecs) == 0 {
+		o.RefSpecs = r.c.Fetch
+	}
+
+	if o.RemoteURL == "" {
+		o.RemoteURL = r.c.URLs[0]
+	}
+
+	s, err := newUploadPackSession(o.RemoteURL, o.Auth, o.InsecureSkipTLS, o.CABundle)
+	if err != nil {
+		return nil, err
+	}
+
+	defer ioutil.CheckClose(s, &err)
+
+	req := &packp.ObjectInfoRequest{
+		Want: "size",
+		OID:  hashes,
+	}
+
+	rep, err := s.ObjectInfo(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	res := make(map[plumbing.Hash]uint64, len(hashes))
+	for _, sz := range rep.Sizes {
+		res[sz.Hash] = sz.Size
+	}
+
+	return res, nil
+
+}
+
 // Fetch fetches references along with the objects necessary to complete their
 // histories.
 //

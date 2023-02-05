@@ -135,6 +135,12 @@ func (s *upSession) AdvertisedReferencesContext(ctx context.Context) (*packp.Adv
 	return ar, nil
 }
 
+func (s *upSession) ObjectInfo(
+	ctx context.Context, req *packp.ObjectInfoRequest,
+) (*packp.ObjectInfoResponse, error) {
+	panic("unimplemented")
+}
+
 func (s *upSession) UploadPack(ctx context.Context, req *packp.UploadPackRequest) (*packp.UploadPackResponse, error) {
 	if req.IsEmpty() {
 		return nil, transport.ErrEmptyUploadPackRequest

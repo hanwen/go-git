@@ -25,8 +25,11 @@ const (
 var (
 	// FlushPkt are the contents of a flush-pkt pkt-line.
 	FlushPkt = []byte{'0', '0', '0', '0'}
+
+	DelimiterPkt = []byte{'0', '0', '0', '1'}
 	// Flush is the payload to use with the Encode method to encode a flush-pkt.
 	Flush = []byte{}
+
 	// FlushString is the payload to use with the EncodeString method to encode a flush-pkt.
 	FlushString = ""
 	// ErrPayloadTooLong is returned by the Encode methods when any of the
@@ -44,6 +47,12 @@ func NewEncoder(w io.Writer) *Encoder {
 // Flush encodes a flush-pkt to the output stream.
 func (e *Encoder) Flush() error {
 	_, err := e.w.Write(FlushPkt)
+	return err
+}
+
+// Delimiter encodes a delimiter-pkt to the output stream.
+func (e *Encoder) Delimiter() error {
+	_, err := e.w.Write(DelimiterPkt)
 	return err
 }
 

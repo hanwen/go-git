@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/go-git/go-git/v5/plumbing"
@@ -32,10 +33,45 @@ func (s *upSession) AdvertisedReferencesContext(ctx context.Context) (*packp.Adv
 	return advertisedReferences(ctx, s.session, transport.UploadPackServiceName)
 }
 
+func (s *upSession) ObjectInfo(
+	ctx context.Context, req *packp.ObjectInfoRequest,
+) (*packp.ObjectInfoResponse, error) {
+
+	url := fmt.Sprintf(
+		"%s.git/%s", // TODO - who inserts the .git ?
+		s.endpoint.String(), transport.UploadPackServiceName,
+	)
+	buf := bytes.NewBuffer(nil)
+
+	if err := req.Encode(buf); err != nil {
+		return nil, fmt.Errorf("sending object-info message: %s", err)
+	}
+
+	res, err := s.doRequest(ctx, http.MethodPost, url, buf)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := ioutil.NonEmptyReader(res.Body)
+	if err != nil {
+		if err == ioutil.ErrEmptyReader || err == io.ErrUnexpectedEOF {
+			return nil, transport.ErrEmptyUploadPackRequest
+		}
+
+		return nil, err
+	}
+
+	rc := ioutil.NewReadCloser(r, res.Body)
+
+	rep := &packp.ObjectInfoResponse{}
+	rep.Decode(rc)
+	return rep, nil
+}
+
 func (s *upSession) UploadPack(
 	ctx context.Context, req *packp.UploadPackRequest,
 ) (*packp.UploadPackResponse, error) {
-
+	panic("boom")
 	if req.IsEmpty() {
 		return nil, transport.ErrEmptyUploadPackRequest
 	}
@@ -94,6 +130,7 @@ func (s *upSession) doRequest(
 	applyHeadersToRequest(req, content, s.endpoint.Host, transport.UploadPackServiceName)
 	s.ApplyAuthToRequest(req)
 
+	log.Println(req)
 	res, err := s.client.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, plumbing.NewUnexpectedError(err)
